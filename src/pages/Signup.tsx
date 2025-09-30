@@ -7,16 +7,20 @@ const Signup: React.FC = () => {
   const [password, setPassword] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [organization, setOrganization] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const { signup } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      navigate('/dashboard');
       await signup(email, password, name, organization);
+      navigate('/dashboard');
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -70,9 +74,10 @@ const Signup: React.FC = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary"
+            disabled={loading}
+            className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
           >
-            ثبت نام
+            {loading ? 'در حال ثبت نام...' : 'ثبت نام'}
           </button>
         </form>
       </div>

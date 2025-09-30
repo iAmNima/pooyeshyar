@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, onSnapshot, addDoc, serverTimestamp, query, orderBy, where } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, serverTimestamp, query, orderBy, where, limit } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import TicketForm from '../components/TicketForm';
+import ChatArea from '../components/ChatArea';
 
 interface Ticket {
   id: string;
@@ -35,6 +36,7 @@ const CompanyDashboard: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
   const [showForm, setShowForm] = useState<boolean>(false);
+  const [lastMessages, setLastMessages] = useState<Record<string, string>>({});
 
   // Fetch tickets with onSnapshot, filtered by companyId
   useEffect(() => {
@@ -50,6 +52,22 @@ const CompanyDashboard: React.FC = () => {
       return unsubscribe;
     }
   }, [currentUser]);
+
+  // Fetch last message for each ticket
+  useEffect(() => {
+    tickets.forEach((ticket) => {
+      const q = query(collection(db, 'tickets', ticket.id, 'messages'), orderBy('timestamp', 'desc'), limit(1));
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        if (!querySnapshot.empty) {
+          const lastMsg = querySnapshot.docs[0].data().text;
+          setLastMessages((prev) => ({ ...prev, [ticket.id]: lastMsg }));
+        } else {
+          setLastMessages((prev) => ({ ...prev, [ticket.id]: '' }));
+        }
+      });
+      return unsubscribe;
+    });
+  }, [tickets]);
 
   // Fetch messages for selected ticket
   useEffect(() => {
@@ -78,9 +96,9 @@ const CompanyDashboard: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-gray-100">
-      {/* Ticket List Sidebar */}
-      <div className="w-full md:w-1/3 bg-white shadow-lg overflow-y-auto">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-100 p-0 md:p-8 gap-0 md:gap-6">
+      {/* Ticket List Sidebar - hidden on mobile if selectedTicket */}
+      <div className={`w-full md:w-1/3 bg-white shadow-lg overflow-y-auto h-full ${selectedTicket ? 'hidden md:block' : 'block'}`}>
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-xl font-bold">تیکت های من</h2>
           <button onClick={handleLogout} className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">خروج</button>
@@ -102,13 +120,12 @@ const CompanyDashboard: React.FC = () => {
             {tickets.map((ticket) => (
               <li
                 key={ticket.id}
-                className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${selectedTicket?.id === ticket.id ? 'bg-primary/20' : ''}`}
+                className={`p-4 border-b cursor-pointer hover:bg-gray-50 h-24 flex flex-col ${selectedTicket?.id === ticket.id ? 'bg-primary/20' : ''}`}
                 onClick={() => setSelectedTicket(ticket)}
               >
-                <div className="font-semibold">{ticket.name}</div>
-                <div className="text-sm text-gray-600">{ticket.organization}</div>
-                <div className="text-sm">{ticket.problem}</div>
-                <div className={`text-xs mt-1 ${ticket.status === 'open' ? 'text-green-600' : 'text-red-600'}`}>
+                <div className="font-semibold truncate">{ticket.problem}</div>
+                <div className="text-sm text-gray-600 truncate">{lastMessages[ticket.id] || 'پیامی وجود ندارد'}</div>
+                <div className={`text-xs mt-auto ${ticket.status === 'open' ? 'text-green-600' : 'text-red-600'}`}>
                   {ticket.status === 'open' ? 'باز' : 'بسته'}
                 </div>
               </li>
@@ -117,43 +134,22 @@ const CompanyDashboard: React.FC = () => {
         )}
       </div>
 
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col bg-white shadow-lg">
-        {selectedTicket ? (
-          <>
-            <div className="p-4 border-b bg-gray-50">
-              <h3 className="text-lg font-semibold">{selectedTicket.name} - {selectedTicket.organization}</h3>
-              <p className="text-sm text-gray-600">{selectedTicket.problem}</p>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.map((msg) => (
-                <div key={msg.id} className={`p-3 rounded-lg shadow-sm max-w-xs break-words ${msg.senderId === currentUser!.uid ? 'bg-primary text-white ml-auto' : 'bg-gray-200 text-gray-900'}`}>
-                  <p className="text-sm">{msg.text}</p>
-                  <small className={`text-xs block mt-1 ${msg.senderId === currentUser!.uid ? 'text-white/80' : 'text-gray-500'}`}>
-                    {msg.timestamp?.toDate().toLocaleString()}
-                  </small>
-                </div>
-              ))}
-            </div>
-            <div className="p-4 border-t flex">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                className="flex-1 p-2 border border-gray-300 rounded-l focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="پیام خود را تایپ کنید..."
-              />
-              <button onClick={sendMessage} className="bg-primary text-white px-4 rounded-r hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary">
-                ارسال
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-500">
-            یک تیکت را انتخاب کنید تا چت شروع شود
-          </div>
-        )}
+      {/* Chat Area - full width on mobile, hidden if no selectedTicket on mobile */}
+      <div className={`flex-1 h-full ${selectedTicket ? 'block' : 'hidden md:block'}`}>
+        <ChatArea
+          selectedTicket={selectedTicket}
+          messages={messages}
+          newMessage={newMessage}
+          setNewMessage={setNewMessage}
+          sendMessage={sendMessage}
+          currentUser={currentUser!}
+          canSendMessage={true}
+          placeholder="پیام خود را تایپ کنید..."
+          sendButtonText="ارسال"
+          noTicketMessage="یک تیکت را انتخاب کنید تا چت شروع شود"
+          onBack={() => setSelectedTicket(null)}
+          backText="← بازگشت به تیکت ها"
+        />
       </div>
     </div>
   );

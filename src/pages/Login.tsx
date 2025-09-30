@@ -6,17 +6,21 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     try {
       await login(email, password);
       navigate('/dashboard');
     } catch (error) {
       setError((error as Error).message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,9 +52,10 @@ const Login: React.FC = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary"
+            disabled={loading}
+            className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
           >
-            ورود
+            {loading ? 'در حال ورود...' : 'ورود'}
           </button>
           {error && <p className="text-red-500 mt-2">{error}</p>}
         </form>

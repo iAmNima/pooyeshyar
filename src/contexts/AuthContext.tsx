@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (user) {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
-          setCurrentUser({ ...user, role: userDoc.data().role } as User);
+          setCurrentUser({ ...user, role: userDoc.data().role, name: userDoc.data().name, organization: userDoc.data().organization } as User);
         } else {
           setCurrentUser(user as User);
         }
@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
     if (userDoc.exists()) {
-      setCurrentUser({ ...userCredential.user, role: userDoc.data().role } as User);
+      setCurrentUser({ ...userCredential.user, role: userDoc.data().role, name: userDoc.data().name, organization: userDoc.data().organization } as User);
     }
     return userCredential;
   };
