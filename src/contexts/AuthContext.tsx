@@ -16,6 +16,7 @@ interface AuthContextType {
   signup: (email: string, password: string, name: string, organization: string) => Promise<UserCredential>;
   login: (email: string, password: string) => Promise<UserCredential>;
   logout: () => Promise<void>;
+  updateProfile: (name: string, organization: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -73,11 +74,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return signOut(auth);
   };
 
+  const updateProfile = async (name: string, organization: string) => {
+    if (currentUser) {
+      await setDoc(doc(db, 'users', currentUser.uid), {
+        name,
+        organization,
+        email: currentUser.email,
+        role: currentUser.role
+      }, { merge: true });
+
+      // Update local state
+      setCurrentUser(prev => prev ? { ...prev, name, organization } : null);
+    }
+  };
+
   const value = {
     currentUser,
     signup,
     login,
-    logout
+    logout,
+    updateProfile
   };
 
   return (

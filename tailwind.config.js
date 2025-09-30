@@ -1,10 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        primary: '#008a83',
+        primary: '#48a0b8',
       },
       boxShadow: {
         'sm': '0 0 8px 3px rgba(0, 0, 0, 0.08)',

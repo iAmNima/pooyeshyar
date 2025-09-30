@@ -7,7 +7,7 @@
 /* Typography */
 @layer base {
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold text-gray-900;
+    @apply font-bold text-gray-900 dark:text-white;
   }
   h1 { @apply text-4xl md:text-5xl; }
   h2 { @apply text-3xl md:text-4xl; }
@@ -15,7 +15,7 @@
   h4 { @apply text-xl md:text-2xl; }
   h5 { @apply text-lg md:text-xl; }
   h6 { @apply text-base md:text-lg; }
-  p { @apply text-gray-700 leading-relaxed; }
+  p { @apply text-gray-700 dark:text-gray-300 leading-relaxed; }
 }
 
 /* Layout Utilities */
@@ -42,7 +42,6 @@
 
 /* Borders */
 @layer utilities {
-  .border-primary { @apply border-primary; }
   .border-rounded { @apply rounded-lg; }
   .border-rounded-full { @apply rounded-full; }
 }
@@ -53,12 +52,193 @@
     @apply bg-primary text-white font-medium py-2 px-4 rounded-lg hover:bg-opacity-90 transition-colors;
   }
   .btn-secondary {
-    @apply bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors;
+    @apply bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white font-medium py-2 px-4 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors;
   }
   .card {
-    @apply bg-white shadow-soft rounded-lg p-6 border border-gray-200;
+    @apply bg-white dark:bg-gray-800 shadow-soft rounded-lg p-6 border border-gray-200 dark:border-gray-700;
   }
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+    @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white;
   }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.message-enter {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.message-fade {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.page-fade {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Mobile Navigation Transitions */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.mobile-slide-in-right {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+.mobile-slide-out-left {
+  animation: slideOutToLeft 0.3s ease-out;
+}
+
+.mobile-slide-in-left {
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+.mobile-slide-out-right {
+  animation: slideOutToRight 0.3s ease-out;
+}
+
+/* Ticket item entrance animation */
+@keyframes ticketItemEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ticket-item-enter {
+  animation: ticketItemEnter 0.3s ease-out;
+}
+
+/* Enhanced button feedback */
+@keyframes buttonPress {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.button-press {
+  animation: buttonPress 0.1s ease-out;
+}
+
+/* Audio Player Slider */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #d1d5db;
+  outline: none;
+  border-radius: 4px;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: #2563eb;
+}
+
+.slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-moz-range-thumb:hover {
+  background: #2563eb;
+}
+
+/* Voice Message Animations */
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Shimmer Animation for Skeletons */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
 }
