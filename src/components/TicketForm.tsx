@@ -68,8 +68,8 @@ const TicketForm: React.FC<TicketFormProps> = ({ inline = false, onSuccess }) =>
   };
 
   return (
-    <div className={inline ? "bg-white p-4 rounded-lg shadow-md w-full" : "min-h-screen flex items-center justify-center bg-gray-100 p-4"}>
-      <div className={inline ? "w-full" : "bg-white p-8 rounded-lg shadow-md w-full max-w-md"}>
+    <div className={inline ? "bg-white p-4 rounded-lg shadow-soft w-full" : "min-h-screen flex items-center justify-center bg-gray-100 p-4"}>
+      <div className={inline ? "w-full" : "bg-white p-8 rounded-lg shadow-soft w-full max-w-md"}>
         <h2 className="text-2xl font-bold text-center mb-6">ایجاد تیکت</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">

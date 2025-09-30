@@ -35,9 +35,9 @@
 
 /* Shadows */
 @layer utilities {
-  .shadow-soft { @apply shadow-md; }
-  .shadow-strong { @apply shadow-lg; }
-  .shadow-xl-custom { @apply shadow-xl; }
+  .shadow-soft { box-shadow: 0 0 15px 5px rgba(0, 0, 0, 0.15); }
+  .shadow-strong { box-shadow: 0 0 25px 8px rgba(0, 0, 0, 0.2); }
+  .shadow-xl-custom { box-shadow: 0 0 35px 10px rgba(0, 0, 0, 0.25); }
 }
 
 /* Borders */

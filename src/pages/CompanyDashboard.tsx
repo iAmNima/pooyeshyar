@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../firebase';
+import { db, storage } from '../firebase';
 import { collection, onSnapshot, addDoc, serverTimestamp, query, orderBy, where, limit } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '../contexts/AuthContext';
 import TicketForm from '../components/TicketForm';
 import ChatArea from '../components/ChatArea';
@@ -21,6 +22,8 @@ interface Message {
   senderId: string;
   text: string;
   timestamp: any;
+  type: 'text' | 'voice';
+  audioUrl?: string;
 }
 
 const CompanyDashboard: React.FC = () => {
@@ -41,13 +44,13 @@ const CompanyDashboard: React.FC = () => {
   // Fetch tickets with onSnapshot, filtered by companyId
   useEffect(() => {
     if (currentUser) {
-      const q = query(collection(db, 'tickets'), where('companyId', '==', currentUser.uid));
+      const q = query(collection(db, 'tickets'), where('companyId', '==', currentUser.uid), orderBy('createdAt', 'desc'));
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const ticketsData: Ticket[] = [];
         querySnapshot.forEach((doc) => {
           ticketsData.push({ id: doc.id, ...doc.data() } as Ticket);
         });
-        setTickets(ticketsData);
+        setTickets(ticketsData.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis()));
       });
       return unsubscribe;
     }
@@ -76,7 +79,8 @@ const CompanyDashboard: React.FC = () => {
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const messagesData: Message[] = [];
         querySnapshot.forEach((doc) => {
-          messagesData.push({ id: doc.id, ...doc.data() } as Message);
+          const data = doc.data();
+          messagesData.push({ id: doc.id, type: data.type || 'text', ...data } as Message);
         });
         setMessages(messagesData);
       });
@@ -90,15 +94,31 @@ const CompanyDashboard: React.FC = () => {
         senderId: currentUser.uid,
         text: newMessage,
         timestamp: serverTimestamp(),
+        type: 'text',
       });
       setNewMessage('');
+    }
+  };
+
+  const sendAudio = async (audioBlob: Blob) => {
+    if (selectedTicket && currentUser) {
+      const storageRef = ref(storage, `audio/${Date.now()}_${currentUser.uid}.webm`);
+      await uploadBytes(storageRef, audioBlob);
+      const audioUrl = await getDownloadURL(storageRef);
+      await addDoc(collection(db, 'tickets', selectedTicket.id, 'messages'), {
+        senderId: currentUser.uid,
+        text: '',
+        timestamp: serverTimestamp(),
+        type: 'voice',
+        audioUrl,
+      });
     }
   };
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-100 p-0 md:p-8 gap-0 md:gap-6">
       {/* Ticket List Sidebar - hidden on mobile if selectedTicket */}
-      <div className={`w-full md:w-1/3 bg-white shadow-lg overflow-y-auto h-full ${selectedTicket ? 'hidden md:block' : 'block'}`}>
+      <div className={`w-full md:w-1/3 bg-white shadow-strong rounded-lg overflow-hidden overflow-y-auto h-full ${selectedTicket ? 'hidden md:block' : 'block'}`}>
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-xl font-bold">تیکت های من</h2>
           <button onClick={handleLogout} className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">خروج</button>
@@ -120,7 +140,7 @@ const CompanyDashboard: React.FC = () => {
             {tickets.map((ticket) => (
               <li
                 key={ticket.id}
-                className={`p-4 border-b cursor-pointer hover:bg-gray-50 h-24 flex flex-col ${selectedTicket?.id === ticket.id ? 'bg-primary/20' : ''}`}
+                className={`p-4 cursor-pointer ${selectedTicket?.id !== ticket.id ? 'hover:bg-primary/20 active:bg-primary/25' : ''} h-24 flex flex-col ${selectedTicket?.id === ticket.id ? 'bg-primary/30' : ''} border-b border-gray-200`}
                 onClick={() => setSelectedTicket(ticket)}
               >
                 <div className="font-semibold truncate">{ticket.problem}</div>
@@ -142,6 +162,7 @@ const CompanyDashboard: React.FC = () => {
           newMessage={newMessage}
           setNewMessage={setNewMessage}
           sendMessage={sendMessage}
+          sendAudio={sendAudio}
           currentUser={currentUser!}
           canSendMessage={true}
           placeholder="پیام خود را تایپ کنید..."

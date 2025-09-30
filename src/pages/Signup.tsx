@@ -26,7 +26,7 @@ const Signup: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
+      <div className="bg-white shadow-strong rounded-lg p-8 max-w-md w-full">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">ایمیل</label>
